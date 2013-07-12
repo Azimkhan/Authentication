@@ -30,6 +30,7 @@ public enum ConnectionPool implements Pool<Connection>{
      */
     private final void initConnections()  {
         connections = new LinkedBlockingQueue<Connection>(POOL_SIZE);
+
         String connectionUrl = config.getString(DBConfigurationManager.DATABASE_CONNECTION_URL);
         String username = config.getString(DBConfigurationManager.DATABASE_USERNAME);
         String password = config.getString(DBConfigurationManager.DATABASE_PASSWORD);
@@ -54,7 +55,7 @@ public enum ConnectionPool implements Pool<Connection>{
      * @return connection to use
      */
     @Override
-    public Connection get() {
+    public final Connection get() {
         try {
             return connections.take();
         } catch (InterruptedException e) {
@@ -67,11 +68,29 @@ public enum ConnectionPool implements Pool<Connection>{
      * @param connection connection to return to the pool
      */
     @Override
-    public void release(Connection connection) {
+    public final void release(Connection connection) {
         try {
             connections.put(connection);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Retrieve pool size
+     * @return
+     */
+    public final int getPoolSize(){
+        return POOL_SIZE;
+    }
+
+    public void shutDown(){
+        for(Connection connection : connections){
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                //logging
+            }
         }
     }
 }
