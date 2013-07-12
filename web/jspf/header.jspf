@@ -1,0 +1,11 @@
+<div id="header">
+    <c:choose>
+        <c:when test="${authenticated == true}">
+            <p>Hi there, ${user.username} [<a href="/logout">Log out</a>]</p>
+        </c:when>
+
+        <c:otherwise>
+            <p>Hi, guest [<a href="/login">Log in</a>]</p>
+        </c:otherwise>
+    </c:choose>
+</div>

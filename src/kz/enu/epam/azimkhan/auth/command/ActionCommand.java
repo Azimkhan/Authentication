@@ -4,6 +4,7 @@ import com.sun.deploy.net.HttpRequest;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -16,8 +17,10 @@ public abstract class ActionCommand {
      * and processes it. The result will be given as
      * a page to forward to
      *
+     *
      * @param request request to read the command from
+     * @param response
      * @return forward page
      */
-    public abstract String execute(HttpServletRequest request) throws ServletException, IOException;
+    public abstract String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
 }

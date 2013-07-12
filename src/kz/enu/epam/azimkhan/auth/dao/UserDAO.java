@@ -14,8 +14,9 @@ import java.util.List;
  */
 public class UserDAO extends AbstractDAO<Integer, User>{
 
-    private static final String SELECT_ALL = "SELECT * FROM users";
-    private static final String FIND_BY_ID = "SELECT * FROM users WHERE id = ?";
+    private static final String SELECT_ALL = "SELECT id, username, password FROM users";
+    private static final String FIND_BY_ID = "SELECT id, username, password FROM users WHERE id = ?";
+    private static final String FIND_BY_LOGIN_PASSWORD = "SELECT id, username, password FROM users WHERE username = ? AND password = ?";
     private static final String DELETE_USER = "DELETE users WHERE is = ?";
     private static final Logger logger = Logger.getRootLogger();
 
@@ -68,6 +69,35 @@ public class UserDAO extends AbstractDAO<Integer, User>{
             logger.error(e.getMessage());
         } finally {
             connectionPool.release(connection);
+        }
+
+        return user;
+    }
+
+    public User findByLoginAndPassword(String login, String password){
+        User user = null;
+
+        if(login != null && password != null){
+            ConnectionPool connectionPool = ConnectionPool.INSTANCE;
+            Connection connection = connectionPool.get();
+
+            PreparedStatement statement = null;
+            try {
+                statement = connection.prepareStatement(FIND_BY_LOGIN_PASSWORD);
+                statement.setString(1, login);
+                statement.setString(2, password);
+
+                ResultSet resultSet = statement.executeQuery();
+
+                if(resultSet.next()){
+                    user = createFromResultSet(resultSet);
+                }
+            } catch (SQLException e) {
+                //TODO logging
+            } finally {
+                connectionPool.release(connection);
+            }
+
         }
 
         return user;

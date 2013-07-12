@@ -2,6 +2,7 @@ package kz.enu.epam.azimkhan.auth.connection;
 
 import kz.enu.epam.azimkhan.auth.pool.Pool;
 import kz.enu.epam.azimkhan.auth.resource.DBConfigurationManager;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,6 +19,7 @@ public enum ConnectionPool implements Pool<Connection>{
 
     private final int POOL_SIZE = 10;
     private final DBConfigurationManager config = DBConfigurationManager.INSTANCE;
+    private final Logger logger = Logger.getRootLogger();
 
     private BlockingQueue<Connection> connections;
 
@@ -57,7 +59,9 @@ public enum ConnectionPool implements Pool<Connection>{
     @Override
     public final Connection get() {
         try {
-            return connections.take();
+            Connection connection = connections.take();
+            logger.info("Connection " + connection + " took from connection pool");
+            return connection;
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -71,6 +75,7 @@ public enum ConnectionPool implements Pool<Connection>{
     public final void release(Connection connection) {
         try {
             connections.put(connection);
+            logger.info("Connection " + connection + " returned to connection pool");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -85,12 +90,15 @@ public enum ConnectionPool implements Pool<Connection>{
     }
 
     public void shutDown(){
+
         for(Connection connection : connections){
             try {
                 connection.close();
             } catch (SQLException e) {
-                //logging
+                logger.error("Couldn't close connection: " + e.getMessage());
             }
         }
+
+        logger.info("Connection pool is shut down");
     }
 }
