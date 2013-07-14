@@ -1,15 +1,15 @@
 package kz.enu.epam.azimkhan.auth.connection;
 
-import kz.enu.epam.azimkhan.auth.pool.Pool;
 import kz.enu.epam.azimkhan.auth.resource.DBConfigurationManager;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Database connection pool
@@ -18,9 +18,13 @@ public enum ConnectionPool implements Pool<Connection>{
     INSTANCE;
 
     private final int POOL_SIZE = 10;
+    private final int WAITING_TIME = 3;
     private final DBConfigurationManager config = DBConfigurationManager.INSTANCE;
     private final Logger logger = Logger.getRootLogger();
 
+    /**
+     * Connections
+     */
     private BlockingQueue<Connection> connections;
 
     ConnectionPool(){
@@ -41,14 +45,18 @@ public enum ConnectionPool implements Pool<Connection>{
         try {
             Class.forName(driverName);
             for (int i = 0; i < POOL_SIZE; i++){
-                connections.add(DriverManager.getConnection(connectionUrl, username, password));
+                Connection connection = DriverManager.getConnection(connectionUrl, username, password);
+                connections.add(connection);
             }
         } catch (SQLException e) {
-            // What to do?????????
-            throw new RuntimeException(e);
+            //????????
+            //throw new RuntimeException(e);
+            logger.error(e.getMessage());
 
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            //????????
+            //throw new RuntimeException(e);
+            logger.error(e.getMessage());
         }
     }
 
@@ -57,13 +65,18 @@ public enum ConnectionPool implements Pool<Connection>{
      * @return connection to use
      */
     @Override
-    public final Connection get() {
+    public final Connection getConnection() {
         try {
-            Connection connection = connections.take();
-            logger.info("Connection " + connection + " took from connection pool");
+            Connection connection = connections.poll(WAITING_TIME, TimeUnit.SECONDS);
+            if (connection != null) {
+                logger.info("Connection " + connection + " took from connection pool");
+            } else {
+                logger.error("Couldn't retrieve a connection from pool");
+            }
             return connection;
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.error(e.getMessage());
+            return null;
         }
     }
 
@@ -71,13 +84,15 @@ public enum ConnectionPool implements Pool<Connection>{
      * Return connection
      * @param connection connection to return to the pool
      */
-    @Override
     public final void release(Connection connection) {
-        try {
-            connections.put(connection);
-            logger.info("Connection " + connection + " returned to connection pool");
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        if (connection != null) {
+            try {
+                connections.put(connection);
+                logger.info("Connection " + connection + " returned to connection pool");
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -89,11 +104,19 @@ public enum ConnectionPool implements Pool<Connection>{
         return POOL_SIZE;
     }
 
+    /**
+     * Close all connection
+     */
     public void shutDown(){
 
-        for(Connection connection : connections){
+        Iterator<Connection> iterator = connections.iterator();
+        while(iterator.hasNext()){
+            Connection connection = iterator.next();
             try {
+                // close connection
                 connection.close();
+                // remove it to prevent the use of closed connection
+                iterator.remove();
             } catch (SQLException e) {
                 logger.error("Couldn't close connection: " + e.getMessage());
             }

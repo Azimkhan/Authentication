@@ -4,7 +4,6 @@ import kz.enu.epam.azimkhan.auth.connection.ConnectionPool;
 import kz.enu.epam.azimkhan.auth.entity.User;
 import org.apache.log4j.Logger;
 
-import java.security.MessageDigest;
 import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,31 +16,34 @@ public class UserDAO extends AbstractDAO<Integer, User>{
     private static final String SELECT_ALL = "SELECT id, username, password FROM users";
     private static final String FIND_BY_ID = "SELECT id, username, password FROM users WHERE id = ?";
     private static final String FIND_BY_LOGIN_PASSWORD = "SELECT id, username, password FROM users WHERE username = ? AND password = ?";
+    private static final String DELETE_BY_ID = "DELETE FROM users WHERE id = ?";
     private static final String DELETE_USER = "DELETE users WHERE is = ?";
     private static final Logger logger = Logger.getRootLogger();
 
     @Override
     public List<User> findAll() {
         ConnectionPool connectionPool = ConnectionPool.INSTANCE;
-        Connection connection = connectionPool.get();
+        Connection connection = connectionPool.getConnection();
         LinkedList<User> users = new LinkedList<User>();
 
-        try {
-            PreparedStatement statement = connection.prepareStatement(SELECT_ALL);
-            ResultSet set = statement.executeQuery();
+        if (connection != null){
+            try {
+                PreparedStatement statement = connection.prepareStatement(SELECT_ALL);
+                ResultSet set = statement.executeQuery();
 
 
-            while(set.next()){
+                while(set.next()){
 
-                User user = createFromResultSet(set);
-                users.add(user);
+                    User user = createFromResultSet(set);
+                    users.add(user);
+                }
+
+                return users;
+            } catch (SQLException e) {
+                logger.error(e.getMessage());
+            } finally {
+                connectionPool.release(connection);
             }
-
-            return users;
-        } catch (SQLException e) {
-            logger.error(e.getMessage());
-        } finally {
-            connectionPool.release(connection);
         }
 
         return users;
@@ -52,23 +54,25 @@ public class UserDAO extends AbstractDAO<Integer, User>{
 
         User user = null;
         ConnectionPool connectionPool = ConnectionPool.INSTANCE;
-        Connection connection = connectionPool.get();
+        Connection connection = connectionPool.getConnection();
 
-        try{
-            PreparedStatement statement = connection.prepareStatement(FIND_BY_ID);
-            statement.setInt(1, id);
+        if (connection != null) {
+            try{
+                PreparedStatement statement = connection.prepareStatement(FIND_BY_ID);
+                statement.setInt(1, id);
 
-            ResultSet set = statement.executeQuery();
+                ResultSet set = statement.executeQuery();
 
-            set.next();
-            if (!set.wasNull()){
-                user = createFromResultSet(set);
+                set.next();
+                if (!set.wasNull()){
+                    user = createFromResultSet(set);
+                }
+
+            } catch (SQLException e){
+                logger.error(e.getMessage());
+            } finally {
+                connectionPool.release(connection);
             }
-
-        } catch (SQLException e){
-            logger.error(e.getMessage());
-        } finally {
-            connectionPool.release(connection);
         }
 
         return user;
@@ -79,23 +83,26 @@ public class UserDAO extends AbstractDAO<Integer, User>{
 
         if(login != null && password != null){
             ConnectionPool connectionPool = ConnectionPool.INSTANCE;
-            Connection connection = connectionPool.get();
+            Connection connection = connectionPool.getConnection();
 
             PreparedStatement statement = null;
-            try {
-                statement = connection.prepareStatement(FIND_BY_LOGIN_PASSWORD);
-                statement.setString(1, login);
-                statement.setString(2, password);
 
-                ResultSet resultSet = statement.executeQuery();
+            if (connection != null) {
+                try {
+                    statement = connection.prepareStatement(FIND_BY_LOGIN_PASSWORD);
+                    statement.setString(1, login);
+                    statement.setString(2, password);
 
-                if(resultSet.next()){
-                    user = createFromResultSet(resultSet);
+                    ResultSet resultSet = statement.executeQuery();
+
+                    if(resultSet.next()){
+                        user = createFromResultSet(resultSet);
+                    }
+                } catch (SQLException e) {
+                    logger.error(e.getMessage());
+                } finally {
+                    connectionPool.release(connection);
                 }
-            } catch (SQLException e) {
-                //TODO logging
-            } finally {
-                connectionPool.release(connection);
             }
 
         }
@@ -105,11 +112,35 @@ public class UserDAO extends AbstractDAO<Integer, User>{
 
     @Override
     public boolean delete(Integer id) {
-        return false;
+        ConnectionPool connectionPool = ConnectionPool.INSTANCE;
+        boolean result = false;
+
+        if (null != id) {
+            Connection connection = connectionPool.getConnection();
+            if (connection != null) {
+                try {
+                    PreparedStatement statement = connection.prepareStatement(DELETE_BY_ID);
+                    statement.setInt(1, id);
+                    statement.executeQuery();
+                    result = true;
+
+                } catch (SQLException e) {
+                    result = false;
+                } finally {
+                    connectionPool.release(connection);
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override
     public boolean delete(User entity) {
+        if (entity != null){
+            return delete(entity.getId());
+        }
+
         return false;
     }
 
