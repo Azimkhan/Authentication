@@ -1,9 +1,7 @@
 package kz.enu.epam.azimkhan.auth.helper;
 
-import kz.enu.epam.azimkhan.auth.command.ActionCommand;
-import kz.enu.epam.azimkhan.auth.command.EmptyCommand;
-import kz.enu.epam.azimkhan.auth.command.LoginCommand;
-import kz.enu.epam.azimkhan.auth.command.LogoutCommand;
+import kz.enu.epam.azimkhan.auth.command.*;
+import org.apache.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -15,6 +13,7 @@ public enum RequestHelper {
 
     INSTANCE;
 
+    private final Logger logger = Logger.getRootLogger();
     /**
      * Request parameter name for command
      */
@@ -27,6 +26,7 @@ public enum RequestHelper {
     {
         commands.put("login", new LoginCommand());
         commands.put("logout", new LogoutCommand());
+        commands.put("locale", new ChangeLocaleCommand());
     }
 
     /**
@@ -45,10 +45,16 @@ public enum RequestHelper {
      * @return
      */
     public ActionCommand getCommand(String action){
+
         ActionCommand command = commands.get(action);
+
+        logger.info("Command requested: "+ action);
 
         if (command == null){
             command = new EmptyCommand();
+            logger.error("No such command, returning "+ command);
+        } else {
+            logger.info("Command found: " + command);
         }
 
         return command;

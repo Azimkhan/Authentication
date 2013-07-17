@@ -4,10 +4,13 @@ package kz.enu.epam.azimkhan.auth.listener; /**
 
 import kz.enu.epam.azimkhan.auth.connection.ConnectionPool;
 import kz.enu.epam.azimkhan.auth.logic.authentication.AuthenticationLogic;
+import kz.enu.epam.azimkhan.auth.resource.LocaleManager;
 import org.apache.log4j.Logger;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
+import javax.servlet.jsp.jstl.core.Config;
+import java.util.Locale;
 
 public class ApplicationListener implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener, ServletRequestListener{
@@ -23,7 +26,14 @@ public class ApplicationListener implements ServletContextListener,
     // ServletContextListener implementation
     // -------------------------------------------------------
     public void contextInitialized(ServletContextEvent sce) {
-      context = sce.getServletContext();
+
+        LocaleManager localeManager = LocaleManager.INSTANCE;
+        context = sce.getServletContext();
+        context.setAttribute("locales", LocaleManager.INSTANCE.getLocales());
+        Locale locale = localeManager.getDefaultLocale();
+        localeManager.setLocale(context, locale);
+        Locale.setDefault(Locale.ENGLISH);
+
     }
 
     public void contextDestroyed(ServletContextEvent sce) {

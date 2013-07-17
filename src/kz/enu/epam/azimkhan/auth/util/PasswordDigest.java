@@ -21,9 +21,9 @@ public class PasswordDigest {
 
             return hash;
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            return null;
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+            return null;
         }
     }
 }

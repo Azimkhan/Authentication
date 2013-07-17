@@ -17,6 +17,11 @@
         <servlet-name>logout</servlet-name>
         <servlet-class>kz.enu.epam.azimkhan.auth.servlet.LogoutServlet</servlet-class>
     </servlet>
+    
+    <servlet>
+        <servlet-name>locale</servlet-name>
+        <servlet-class>kz.enu.epam.azimkhan.auth.servlet.LocaleServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>login</servlet-name>
@@ -27,5 +32,22 @@
         <servlet-name>logout</servlet-name>
         <url-pattern>/logout</url-pattern>
     </servlet-mapping>
+
+    <context-param>
+        <param-name>javax.servlet.jsp.jstl.fmt.locale</param-name>
+        <param-value>en</param-value>
+    </context-param>
+    
+    <servlet-mapping>
+        <servlet-name>locale</servlet-name>
+        <url-pattern>/lang</url-pattern>
+    </servlet-mapping>
+
+    <jsp-config>
+        <taglib>
+            <taglib-uri>http://azimkhan.net/taglib</taglib-uri>
+            <taglib-location>/WEB-INF/tld/my.tld</taglib-location>
+        </taglib>
+    </jsp-config>
 
 </web-app>

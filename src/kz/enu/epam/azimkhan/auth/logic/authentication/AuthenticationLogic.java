@@ -54,6 +54,7 @@ public class AuthenticationLogic {
     public static boolean isLoggedIn(HttpServletRequest request){
         HttpSession session = request.getSession(true);
         return  (session.getAttribute(SESSION_VAR) != null);
+
     }
 
     /**

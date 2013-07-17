@@ -1,5 +1,8 @@
 package kz.enu.epam.azimkhan.auth.resource;
 
+import javax.servlet.jsp.jstl.core.Config;
+import javax.servlet.jsp.jstl.fmt.LocaleSupport;
+import javax.servlet.jsp.jstl.fmt.LocalizationContext;
 import java.util.ResourceBundle;
 
 /**
@@ -12,7 +15,7 @@ public enum MessageManager {
     private ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME);
 
     /**
-     * get message
+     * get getMessage
      * @param key
      * @return
      */

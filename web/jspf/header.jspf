@@ -1,11 +1,29 @@
+<%@taglib prefix="m" uri="http://azimkhan.net/taglib" %>
+<fmt:setLocale value="${locale}"/>
+<fmt:setBundle basename="message"/>
 <div id="header">
+    <ul class="lang_switcher">
+        <c:forEach items="${locales}" var="locale">
+            <c:set var="code" value="${locale.value.toLanguageTag() }"/>
+            <li class="lang lang-${code}"><a href="/lang?code=${code}">${locale.key}</a> </li>
+        </c:forEach>
+    </ul>
     <c:choose>
-        <c:when test="${authenticated == true}">
-            <p>Hi there, ${user.username} [<a href="/logout">Log out</a>]</p>
+
+        <c:when test="${m:authenticated(pageContext.request)}">
+            <p><fmt:message key="user.welcome"> <fmt:param value="${ user.username }"></fmt:param> </fmt:message> [<a href="/logout"><fmt:message key="user.logout"/></a>]</p>
         </c:when>
 
         <c:otherwise>
-            <p>Hi, guest [<a href="/login">Log in</a>]</p>
+            <p><fmt:message key="guest.welcome"/> [<a href="/login"><fmt:message key="user.login"/></a>]</p>
         </c:otherwise>
     </c:choose>
 </div>
+
+<c:if test="${m:have_notifications(pageContext.request)}">
+    <div class="content">
+    <m:notifications>
+        <p class="alert alert-{type}">{message}</p>
+    </m:notifications>
+    </div>
+</c:if>

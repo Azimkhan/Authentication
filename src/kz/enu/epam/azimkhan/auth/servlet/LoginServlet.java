@@ -28,7 +28,7 @@ public class LoginServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ActionCommand command = requestHelper.getCommand(request);
-        logger.info("Command found: " + command);
+
 
         String page = command.execute(request, response);
 
