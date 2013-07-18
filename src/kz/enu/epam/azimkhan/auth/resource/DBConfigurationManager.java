@@ -8,7 +8,7 @@ import java.util.ResourceBundle;
 public enum DBConfigurationManager {
     INSTANCE;
 
-    private static final String BUNDLE_NAME = "database";
+    private static final String BUNDLE_NAME = "kz.enu.epam.azimkhan.auth.resource.database";
     public static final String DATABASE_DRIVER_NAME = "driver_name";
     public static final String DATABASE_CONNECTION_URL = "url";
     public static final String DATABASE_USERNAME = "username";

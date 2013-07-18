@@ -2,7 +2,7 @@ package kz.enu.epam.azimkhan.auth.command;
 
 import kz.enu.epam.azimkhan.auth.entity.User;
 import kz.enu.epam.azimkhan.auth.logic.authentication.AuthenticationLogic;
-import kz.enu.epam.azimkhan.auth.resource.UrlManager;
+import kz.enu.epam.azimkhan.auth.resource.PathManager;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -24,6 +24,6 @@ public class LogoutCommand extends ActionCommand{
             AuthenticationLogic.logout(request);
             logger.info("Logged out: " + user.getUsername());
         }
-        return UrlManager.INSTANCE.getString("path.page.main");
+        return PathManager.INSTANCE.getString("path.page.main");
     }
 }

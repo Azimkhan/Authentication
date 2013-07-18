@@ -17,7 +17,7 @@ public enum RequestHelper {
     /**
      * Request parameter name for command
      */
-    public static final String COMMAND_PARAMETER = "command";
+    public static final String COMMAND_PARAMETER = "c";
 
     /**
      * action commands
@@ -26,7 +26,7 @@ public enum RequestHelper {
     {
         commands.put("login", new LoginCommand());
         commands.put("logout", new LogoutCommand());
-        commands.put("locale", new ChangeLocaleCommand());
+        commands.put("change_locale", new ChangeLocaleCommand());
     }
 
     /**

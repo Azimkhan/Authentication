@@ -9,14 +9,12 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- *
+ * Manages locales
  */
 public enum LocaleManager {
     INSTANCE;
 
-    public static final String DEFAULT_LOCALE = "default_locale";
     public static final String VAR = "locale";
-    private static final String BUNDLE_NAME = "locale";
 
     private Locale defaultLocale = Locale.forLanguageTag("ru-RU");
     private HashMap<String, Locale> locales = new HashMap<String, Locale>();

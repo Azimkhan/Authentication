@@ -2,6 +2,7 @@ package kz.enu.epam.azimkhan.auth.notification.creator;
 
 import kz.enu.epam.azimkhan.auth.notification.entity.Notification;
 import kz.enu.epam.azimkhan.auth.resource.LocaleManager;
+import kz.enu.epam.azimkhan.auth.resource.MessageManager;
 import org.apache.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +14,6 @@ import java.util.ResourceBundle;
  * Simplifies notification creation
  */
 public class NotificationCreator {
-    private static final String BUNDLE_NAME = "notification";
 
     private HttpServletRequest request;
 
@@ -32,34 +32,25 @@ public class NotificationCreator {
      * @return
      */
     public Notification createFromProperty(Notification.Type type, String propertyName){
-        LocaleManager localeManager = LocaleManager.INSTANCE;
-        Locale currentLocale = localeManager.getLocale(request);
+
         Notification notification = new Notification("????? " + propertyName + "??????", type);
 
-        try{
-
-            ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_NAME, currentLocale);
-            if (bundle != null){
-
-
-                String message = bundle.getString(propertyName);
-                if (message != null){
-                    notification = new Notification(message, type);
-                }
-            }
-        } catch (MissingResourceException e){
-            //TODO log it
+        String message = MessageManager.INSTANCE.getMessage(request, propertyName);
+        if (message != null){
+            notification = new Notification(message, type);
         }
 
         return notification;
     }
 
     /**
-     * Create notification from property key
+     * Create notification by type and property key
+     * @param type
      * @param propertyName
      * @return
      */
     public Notification createFromProperty(String propertyName){
+
         return createFromProperty(Notification.Type.INFO, propertyName);
     }
 }

@@ -1,6 +1,8 @@
 package kz.enu.epam.azimkhan.auth.dao;
 
 import kz.enu.epam.azimkhan.auth.entity.Entity;
+import kz.enu.epam.azimkhan.auth.exception.DAOLogicalException;
+import kz.enu.epam.azimkhan.auth.exception.DAOTechnicalException;
 
 import java.util.List;
 
@@ -10,10 +12,10 @@ import java.util.List;
  * @param <T>
  */
 public abstract class AbstractDAO <K, T extends Entity> {
-    public abstract List<T> findAll();
-    public abstract T findById(K id);
-    public abstract boolean delete(K id);
-    public abstract boolean delete(T entity);
-    public abstract boolean create(T entity);
-    public abstract T update(T entity);
+    public abstract List<T> findAll() throws DAOLogicalException, DAOTechnicalException;
+    public abstract T findById(K id) throws DAOLogicalException, DAOTechnicalException;
+    public abstract boolean delete(K id) throws DAOLogicalException, DAOTechnicalException;
+    public abstract boolean delete(T entity) throws DAOLogicalException, DAOTechnicalException;
+    public abstract boolean create(T entity) throws DAOLogicalException, DAOTechnicalException;
+    public abstract boolean update(T entity) throws DAOLogicalException, DAOTechnicalException;
 }

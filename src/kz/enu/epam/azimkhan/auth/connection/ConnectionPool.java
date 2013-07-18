@@ -1,5 +1,6 @@
 package kz.enu.epam.azimkhan.auth.connection;
 
+import kz.enu.epam.azimkhan.auth.exception.ConnectionPoolException;
 import kz.enu.epam.azimkhan.auth.resource.DBConfigurationManager;
 import org.apache.log4j.Logger;
 
@@ -14,11 +15,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Database connection pool
  */
-public enum ConnectionPool implements Pool<Connection>{
-    INSTANCE;
+public class ConnectionPool implements Pool<Connection>{
+
+    private static ConnectionPool instance = null;
 
     private final int POOL_SIZE = 10;
-    private final int WAITING_TIME = 3;
+    private final int MAX_WAITING_TIME = 2;
     private final DBConfigurationManager config = DBConfigurationManager.INSTANCE;
     private final Logger logger = Logger.getRootLogger();
 
@@ -27,14 +29,25 @@ public enum ConnectionPool implements Pool<Connection>{
      */
     private BlockingQueue<Connection> connections;
 
-    ConnectionPool(){
+    private ConnectionPool() throws ConnectionPoolException{
         initConnections();
     }
 
     /**
+     * Get single instance
+     * @return
+     */
+    public synchronized static ConnectionPool getInstance() throws ConnectionPoolException{
+        if (null == instance){
+            instance = new ConnectionPool();
+        }
+
+        return instance;
+    }
+    /**
      * Create and fill connection pool
      */
-    private final void initConnections()  {
+    private final void initConnections() throws ConnectionPoolException{
         connections = new LinkedBlockingQueue<Connection>(POOL_SIZE);
 
         String connectionUrl = config.getString(DBConfigurationManager.DATABASE_CONNECTION_URL);
@@ -67,7 +80,7 @@ public enum ConnectionPool implements Pool<Connection>{
     @Override
     public final Connection getConnection() {
         try {
-            Connection connection = connections.poll(WAITING_TIME, TimeUnit.SECONDS);
+            Connection connection = connections.poll(MAX_WAITING_TIME, TimeUnit.SECONDS);
             if (connection != null) {
                 logger.info("Connection " + connection + " took from connection pool");
             } else {

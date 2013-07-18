@@ -1,12 +1,7 @@
 package kz.enu.epam.azimkhan.auth.servlet;
 
 import kz.enu.epam.azimkhan.auth.command.ActionCommand;
-import kz.enu.epam.azimkhan.auth.dao.UserDAO;
-import kz.enu.epam.azimkhan.auth.entity.User;
 import kz.enu.epam.azimkhan.auth.helper.RequestHelper;
-import kz.enu.epam.azimkhan.auth.resource.LocaleManager;
-import kz.enu.epam.azimkhan.auth.util.PasswordDigest;
-import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -14,14 +9,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Locale;
 
 /**
- *
+ * Front Controller
  */
-@WebServlet(name = "LocaleServlet")
-public class LocaleServlet extends HttpServlet {
+public class FrontController extends HttpServlet {
+
+    private final RequestHelper requestHelper = RequestHelper.INSTANCE;
+
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processRequest(request, response);
     }
@@ -30,10 +25,20 @@ public class LocaleServlet extends HttpServlet {
         processRequest(request, response);
     }
 
-    private void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-        ActionCommand command = RequestHelper.INSTANCE.getCommand("locale");
+    /**
+     * Process any incoming request
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        ActionCommand command = requestHelper.getCommand(request);
+        String redirectPath = command.execute(request, response);
 
-        String redirect = command.execute(request, response);
-        response.sendRedirect(redirect);
+        if (redirectPath != null){
+            response.sendRedirect(redirectPath);
+        }
     }
+
 }

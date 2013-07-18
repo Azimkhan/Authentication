@@ -2,6 +2,9 @@ package kz.enu.epam.azimkhan.auth.dao;
 
 import kz.enu.epam.azimkhan.auth.connection.ConnectionPool;
 import kz.enu.epam.azimkhan.auth.entity.User;
+import kz.enu.epam.azimkhan.auth.exception.ConnectionPoolException;
+import kz.enu.epam.azimkhan.auth.exception.DAOLogicalException;
+import kz.enu.epam.azimkhan.auth.exception.DAOTechnicalException;
 import org.apache.log4j.Logger;
 
 import java.sql.*;
@@ -19,17 +22,33 @@ public class UserDAO extends AbstractDAO<Integer, User>{
     private static final String DELETE_BY_ID = "DELETE users WHERE id = ?";
     private static final String CREATE_USER = "INSERT INTO users (username, password) VALUES(?, ?)";
     private static final String UPDATE_USER = "UPDATE users SET username = ?, password = ? WHERE id = ?";
+    private static final String NO_CONNECTION_MESSAGE = "Unable to get connection";
     private static final Logger logger = Logger.getRootLogger();
 
+    /**
+     * Find all users
+     * @return
+     * @throws DAOLogicalException
+     * @throws DAOTechnicalException
+     */
     @Override
-    public List<User> findAll() {
-        ConnectionPool connectionPool = ConnectionPool.INSTANCE;
+    public List<User> findAll() throws DAOLogicalException, DAOTechnicalException {
+
+        ConnectionPool connectionPool = null;
+        try{
+            connectionPool = ConnectionPool.getInstance();
+        } catch (ConnectionPoolException e){
+            throw new DAOTechnicalException(e);
+        }
+
         Connection connection = connectionPool.getConnection();
+        PreparedStatement statement = null;
+
         LinkedList<User> users = new LinkedList<User>();
 
         if (connection != null){
             try {
-                PreparedStatement statement = connection.prepareStatement(SELECT_ALL);
+                statement = connection.prepareStatement(SELECT_ALL);
                 ResultSet set = statement.executeQuery();
 
                 while(set.next()){
@@ -40,13 +59,20 @@ public class UserDAO extends AbstractDAO<Integer, User>{
 
                 return users;
             } catch (SQLException e) {
-                logger.error(e.getMessage());
+                throw new DAOLogicalException(e);
             } finally {
+                if (null != statement) {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        logger.error(e.getMessage());
+                    }
+                }
                 connectionPool.release(connection);
             }
+        } else{
+            throw new DAOTechnicalException(NO_CONNECTION_MESSAGE);
         }
-
-        return users;
     }
 
     /**
@@ -55,28 +81,45 @@ public class UserDAO extends AbstractDAO<Integer, User>{
      * @return
      */
     @Override
-    public User findById(Integer id) {
+    public User findById(Integer id) throws DAOLogicalException, DAOTechnicalException {
 
         User user = null;
-        ConnectionPool connectionPool = ConnectionPool.INSTANCE;
-        Connection connection = connectionPool.getConnection();
 
-        if (connection != null) {
+        if (id != null){
+            ConnectionPool connectionPool = null;
             try{
-                PreparedStatement statement = connection.prepareStatement(FIND_BY_ID);
-                statement.setInt(1, id);
+                connectionPool = ConnectionPool.getInstance();
+            } catch (ConnectionPoolException e){
+                throw new DAOTechnicalException(e);
+            }
+            Connection connection = connectionPool.getConnection();
+            PreparedStatement statement = null;
+            if (connection != null) {
+                try{
+                    statement = connection.prepareStatement(FIND_BY_ID);
+                    statement.setInt(1, id);
 
-                ResultSet set = statement.executeQuery();
+                    ResultSet set = statement.executeQuery();
 
-                set.next();
-                if (!set.wasNull()){
-                    user = createFromResultSet(set);
+                    set.next();
+                    if (!set.wasNull()){
+                        user = createFromResultSet(set);
+                    }
+
+                } catch (SQLException e){
+                    throw new DAOLogicalException(e);
+                } finally {
+                    if (null != statement) {
+                        try {
+                            statement.close();
+                        } catch (SQLException e) {
+                            logger.error(e.getMessage());
+                        }
+                    }
+                    connectionPool.release(connection);
                 }
-
-            } catch (SQLException e){
-                logger.error(e.getMessage());
-            } finally {
-                connectionPool.release(connection);
+            } else{
+                throw new DAOTechnicalException(NO_CONNECTION_MESSAGE);
             }
         }
 
@@ -89,11 +132,16 @@ public class UserDAO extends AbstractDAO<Integer, User>{
      * @param password
      * @return
      */
-    public User findByLoginAndPassword(String login, String password){
+    public User findByLoginAndPassword(String login, String password) throws DAOLogicalException, DAOTechnicalException{
         User user = null;
 
         if(login != null && password != null){
-            ConnectionPool connectionPool = ConnectionPool.INSTANCE;
+            ConnectionPool connectionPool = null;
+            try{
+                connectionPool = ConnectionPool.getInstance();
+            } catch (ConnectionPoolException e){
+                throw new DAOTechnicalException(e);
+            }
             Connection connection = connectionPool.getConnection();
 
             PreparedStatement statement = null;
@@ -110,56 +158,81 @@ public class UserDAO extends AbstractDAO<Integer, User>{
                         user = createFromResultSet(resultSet);
                     }
                 } catch (SQLException e) {
-                    logger.error(e.getMessage());
+                    throw new DAOLogicalException(e);
                 } finally {
+                    if (null != statement) {
+                        try {
+                            statement.close();
+                        } catch (SQLException e) {
+                            logger.error(e.getMessage());
+                        }
+                    }
                     connectionPool.release(connection);
                 }
+            } else{
+                throw new DAOTechnicalException(NO_CONNECTION_MESSAGE);
             }
-
         }
-
         return user;
     }
 
     /**
      * Delete user by id
+     *
      * @param id
      * @return
      */
     @Override
-    public boolean delete(Integer id) {
-        ConnectionPool connectionPool = ConnectionPool.INSTANCE;
-        boolean result = false;
+    public boolean delete(Integer id) throws DAOLogicalException, DAOTechnicalException {
 
         if (null != id) {
+
+            ConnectionPool connectionPool = null;
+            try{
+                connectionPool = ConnectionPool.getInstance();
+            } catch (ConnectionPoolException e){
+                throw new DAOTechnicalException(e);
+            }
+
             Connection connection = connectionPool.getConnection();
+            PreparedStatement statement = null;
             if (connection != null) {
                 try {
-                    PreparedStatement statement = connection.prepareStatement(DELETE_BY_ID);
+                    statement = connection.prepareStatement(DELETE_BY_ID);
                     statement.setInt(1, id);
-                    statement.executeQuery();
-                    result = true;
+                    int affected = statement.executeUpdate();
+                    return (affected > 0);
 
                 } catch (SQLException e) {
-                    result = false;
+                    throw new DAOLogicalException();
                 } finally {
+                    if (null != statement) {
+                        try {
+                            statement.close();
+                        } catch (SQLException e) {
+                            logger.error(e.getMessage());
+                        }
+                    }
                     connectionPool.release(connection);
                 }
+            } else{
+                throw new DAOTechnicalException(NO_CONNECTION_MESSAGE);
             }
         }
 
-        return result;
+        return false;
     }
 
     /**
      * Delete user
+     *
      * @param entity
      * @return
      */
     @Override
-    public boolean delete(User entity) {
+    public boolean delete(User entity) throws DAOLogicalException, DAOTechnicalException {
         if (entity != null){
-            return delete(entity.getId());
+             return delete(entity.getId());
         }
 
         return false;
@@ -167,32 +240,46 @@ public class UserDAO extends AbstractDAO<Integer, User>{
 
     /**
      * Create user
+     *
      * @param entity
      * @return
      */
     @Override
-    public boolean create(User entity) {
+    public boolean create(User entity) throws DAOLogicalException, DAOTechnicalException {
         if (entity != null){
-            ConnectionPool connectionPool = ConnectionPool.INSTANCE;
-            Connection connection = connectionPool.getConnection();
+            ConnectionPool connectionPool = null;
+            try{
+                connectionPool = ConnectionPool.getInstance();
+            } catch (ConnectionPoolException e){
+                throw new DAOTechnicalException(e);
+            }
 
+            Connection connection = connectionPool.getConnection();
+            PreparedStatement statement = null;
             if (connection != null){
                 try {
-                    PreparedStatement statement = connection.prepareStatement(CREATE_USER);
+                    statement = connection.prepareStatement(CREATE_USER);
                     statement.setString(1, entity.getUsername());
                     statement.setString(2, entity.getPassword());
 
-                    int result = statement.executeUpdate();
-
-                    logger.info("User create result = " + result);
-
-                    return (result > 0);
+                    int affected = statement.executeUpdate();
+                    return (affected > 0);
 
                 } catch (SQLException e) {
-                    logger.error(e.getMessage());
+                    throw new DAOLogicalException(e.getMessage());
+
                 } finally {
+                    if (null != statement) {
+                        try {
+                            statement.close();
+                        } catch (SQLException e) {
+                            logger.error(e.getMessage());
+                        }
+                    }
                     connectionPool.release(connection);
                 }
+            } else{
+                throw new DAOTechnicalException(NO_CONNECTION_MESSAGE);
             }
         }
 
@@ -201,12 +288,57 @@ public class UserDAO extends AbstractDAO<Integer, User>{
 
     /**
      * Update user
+     *
+     *
+     *
      * @param entity
      * @return
      */
     @Override
-    public User update(User entity) {
-        return null;
+    public boolean update(User entity) throws DAOLogicalException, DAOTechnicalException {
+
+
+        if (entity != null){
+            ConnectionPool connectionPool = null;
+            try {
+                connectionPool = ConnectionPool.getInstance();
+            } catch (ConnectionPoolException e) {
+                throw new DAOTechnicalException(e);
+            }
+
+            Connection connection = connectionPool.getConnection();
+            PreparedStatement statement = null;
+
+            if (connection != null){
+                try {
+                    statement = connection.prepareStatement(UPDATE_USER);
+                    statement.setString(1, entity.getUsername());
+                    statement.setString(2, entity.getPassword());
+                    statement.setInt(3, entity.getId());
+
+                    int affected = statement.executeUpdate();
+
+                    return (affected > 0);
+
+                } catch (SQLException e) {
+                    throw new DAOLogicalException(e);
+                } finally {
+                    if (null != statement){
+                        try {
+                            statement.close();
+                        } catch (SQLException e) {
+                            logger.error(e.getMessage());
+                        }
+
+                        connectionPool.release(connection);
+                    }
+                }
+
+            } else{
+                throw new DAOTechnicalException(NO_CONNECTION_MESSAGE);
+            }
+        }
+        return false;
     }
 
     /**

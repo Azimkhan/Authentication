@@ -3,6 +3,7 @@ package kz.enu.epam.azimkhan.auth.listener; /**
  */
 
 import kz.enu.epam.azimkhan.auth.connection.ConnectionPool;
+import kz.enu.epam.azimkhan.auth.exception.ConnectionPoolException;
 import kz.enu.epam.azimkhan.auth.logic.authentication.AuthenticationLogic;
 import kz.enu.epam.azimkhan.auth.resource.LocaleManager;
 import org.apache.log4j.Logger;
@@ -37,7 +38,12 @@ public class ApplicationListener implements ServletContextListener,
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
-        ConnectionPool.INSTANCE.shutDown();
+        try {
+            ConnectionPool connectionPool = ConnectionPool.getInstance();
+            connectionPool.shutDown();
+        } catch (ConnectionPoolException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     // -------------------------------------------------------

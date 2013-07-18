@@ -5,17 +5,15 @@ import kz.enu.epam.azimkhan.auth.logic.authentication.AuthenticationLogic;
 import kz.enu.epam.azimkhan.auth.notification.creator.NotificationCreator;
 import kz.enu.epam.azimkhan.auth.notification.entity.Notification;
 import kz.enu.epam.azimkhan.auth.notification.service.NotificationService;
-import kz.enu.epam.azimkhan.auth.resource.MessageManager;
-import kz.enu.epam.azimkhan.auth.resource.UrlManager;
+import kz.enu.epam.azimkhan.auth.resource.PathManager;
 import org.apache.log4j.Logger;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- *
+ * Login command
  */
 public class LoginCommand extends ActionCommand{
 
@@ -26,6 +24,8 @@ public class LoginCommand extends ActionCommand{
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        request.setAttribute("login_var", LOGIN_PARAMETER);
+        request.setAttribute("password_var", PASSWORD_PARAMETER);
         final String login = request.getParameter(LOGIN_PARAMETER);
         final String password = request.getParameter(PASSWORD_PARAMETER);
         final NotificationCreator notificationCreator = new NotificationCreator(request);
@@ -33,43 +33,32 @@ public class LoginCommand extends ActionCommand{
         final AuthenticationLogic logic = new AuthenticationLogic(request);
 
 
-        UrlManager urlManager = UrlManager.INSTANCE;
-        MessageManager messageManager = MessageManager.INSTANCE;
+        PathManager pathManager = PathManager.INSTANCE;
         Notification notification = null;
 
-        try {
-            logic.authenticate(login, password);
+        if (login != null && password != null){
+            try {
+                if (logic.authenticate(login, password)){
 
-            logger.info("Successful authentication by login: " + login);
-            notification = notificationCreator.createFromProperty("info.auth.success");
-            notificationService.push(notification);
+                    logger.info("Successful authentication by login: " + login);
+                    notification = notificationCreator.createFromProperty("info.auth.success");
 
-            return urlManager.getString("path.page.main");
+                    return pathManager.getString("path.page.main");
+                }else{
+                    logger.info("Authentication fail by login: " + login);
+                    notification = notificationCreator.createFromProperty(Notification.Type.ERROR,"error.auth.invalid_login_pass");
+                }
 
-        } catch (AuthenticationException e) {
-            String messageKey = null;
-
-            switch (e.getErrorCode()){
-
-                case AuthenticationException.EMPTY_LOGIN:
-                    messageKey = "error.auth.empty_login";
-                    break;
-                case AuthenticationException.EMPTY_PASSWORD:
-                    messageKey = "error.auth.empty_password";
-                    break;
-                case AuthenticationException.INVALID_LOGIN_OR_PASSWORD:
-                    messageKey = "error.auth.invalid_login_pass";
-                    break;
-                default:
-                    messageKey = "error.auth.unknown_error";
-                    break;
+            } catch (AuthenticationException e) {
+                throw new ServletException(e);
+            } finally {
+                if (notification != null){
+                    notificationService.push(notification);
+                }
             }
-
-            logger.info("Authentication error [login=" + login + "], error code: " + e.getErrorCode());
-            notification = notificationCreator.createFromProperty(Notification.Type.ERROR, messageKey);
-            notificationService.push(notification);
-
         }
+
+        request.getRequestDispatcher("jsp/login.jsp").forward(request, response);
 
         return null;
     }

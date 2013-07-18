@@ -3,6 +3,8 @@ package kz.enu.epam.azimkhan.auth.logic.authentication;
 import kz.enu.epam.azimkhan.auth.dao.UserDAO;
 import kz.enu.epam.azimkhan.auth.entity.User;
 import kz.enu.epam.azimkhan.auth.exception.AuthenticationException;
+import kz.enu.epam.azimkhan.auth.exception.DAOLogicalException;
+import kz.enu.epam.azimkhan.auth.exception.DAOTechnicalException;
 import kz.enu.epam.azimkhan.auth.util.PasswordDigest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,21 +31,28 @@ public class AuthenticationLogic {
      * @param password
      * @throws AuthenticationException
      */
-    public void authenticate(final String login, final String password) throws AuthenticationException{
+    public boolean authenticate(final String login, final String password) throws AuthenticationException{
         if (login != null && password != null){
             String hash = PasswordDigest.md5hash(password);
             UserDAO dao = new UserDAO();
-            User user =  dao.findByLoginAndPassword(login, hash);
+            User user = null;
+            try {
+                user = dao.findByLoginAndPassword(login, hash);
+            } catch (DAOLogicalException e) {
+                throw new AuthenticationException(e);
+            } catch (DAOTechnicalException e) {
+                throw new AuthenticationException(e);
+            }
 
             if (null != user){
                 HttpSession session = request.getSession(true);
                 session.setAttribute(SESSION_VAR, user);
+                return true;
             } else{
-                throw new AuthenticationException(AuthenticationException.INVALID_LOGIN_OR_PASSWORD);
+                return false;
             }
-        } else{
-            throw new AuthenticationException((password == null) ? AuthenticationException.EMPTY_PASSWORD : AuthenticationException.EMPTY_LOGIN);
         }
+        return false;
     }
 
     /**
