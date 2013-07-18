@@ -11,13 +11,13 @@
 <html>
 <head>
     <title>Login</title>
-    <link rel="stylesheet" href="/css/style.css"/>
+    <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 
-    <%@include file="jspf/header.jspf"%>
+    <%@include file="../WEB-INF/jspf/header.jspf"%>
     <fmt:setLocale value="${locale}"/>
-    <fmt:setBundle basename="message"/>
+    <fmt:setBundle basename="kz.enu.epam.azimkhan.auth.resource.message"/>
 
     <div class="content">
 
