@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <taglib xmlns="http://java.sun.com/xml/ns/j2ee"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://java.sun.com/xml/ns/javaee/web-jsptaglibrary_2_1.xsd"
-        version="2.1">
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+        version="2.0">
     <tlib-version>1.0</tlib-version>
 
-    <short-name>My tag library</short-name>
+    <short-name>n</short-name>
     <uri>http://azimkhan.net/taglib</uri>
+    <tag>
+        <name>notifications</name>
+        <tag-class>kz.enu.epam.azimkhan.auth.notification.tag.FlashesTag</tag-class>
+        <body-content>scriptless</body-content>
 
+    </tag>
     <function>
         <name>have_notifications</name>
         <function-class>kz.enu.epam.azimkhan.auth.notification.service.NotificationService</function-class>
@@ -19,11 +24,6 @@
         <function-class>kz.enu.epam.azimkhan.auth.logic.authentication.AuthenticationLogic</function-class>
         <function-signature>boolean isLoggedIn(javax.servlet.http.HttpServletRequest)</function-signature>
     </function>
-    <tag>
-        <name>notifications</name>
-        <tag-class>kz.enu.epam.azimkhan.auth.notification.tag.FlashesTag</tag-class>
-        <body-content>scriptless</body-content>
 
-    </tag>
 
 </taglib>
