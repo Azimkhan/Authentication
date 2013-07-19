@@ -1,7 +1,6 @@
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib prefix="m" uri="http://azimkhan.net/taglib" %>
-<fmt:setLocale value="${locale}"/>
-<fmt:setBundle basename="kz.enu.epam.azimkhan.auth.resource.message"/>
+
 <div id="header">
     <c:set var="user" scope="page" value="${m:user(pageContext.request)}"/>
 
