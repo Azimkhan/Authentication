@@ -13,6 +13,12 @@
         <body-content>scriptless</body-content>
 
     </tag>
+
+    <function>
+        <name>user</name>
+        <function-class>kz.enu.epam.azimkhan.auth.logic.authentication.AuthenticationLogic</function-class>
+        <function-signature>kz.enu.epam.azimkhan.auth.entity.User user(javax.servlet.http.HttpServletRequest)</function-signature>
+    </function>
     <function>
         <name>have_notifications</name>
         <function-class>kz.enu.epam.azimkhan.auth.notification.service.NotificationService</function-class>

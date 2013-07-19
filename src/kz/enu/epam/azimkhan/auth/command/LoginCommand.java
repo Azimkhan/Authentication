@@ -30,15 +30,13 @@ public class LoginCommand extends ActionCommand{
         final String password = request.getParameter(PASSWORD_PARAMETER);
         final NotificationCreator notificationCreator = new NotificationCreator(request);
         final NotificationService notificationService = new NotificationService(request);
-        final AuthenticationLogic logic = new AuthenticationLogic(request);
-
 
         PathManager pathManager = PathManager.INSTANCE;
         Notification notification = null;
 
         if (login != null && password != null){
             try {
-                if (logic.authenticate(login, password)){
+                if (AuthenticationLogic.authenticate(request, login, password)){
 
                     logger.info("Successful authentication by login: " + login);
                     notification = notificationCreator.createFromProperty("info.auth.success");

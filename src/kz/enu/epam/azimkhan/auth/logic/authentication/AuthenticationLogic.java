@@ -14,16 +14,7 @@ import javax.servlet.http.HttpSession;
  * Performs authentication
  */
 public class AuthenticationLogic {
-    public static final String SESSION_VAR = "";
-    /**
-     * Request
-     */
-    private HttpServletRequest request;
-
-    public AuthenticationLogic(HttpServletRequest request) {
-        this.request = request;
-
-    }
+    public static final String SESSION_VAR = "_user";
 
     /**
      * Authenticate user
@@ -31,7 +22,7 @@ public class AuthenticationLogic {
      * @param password
      * @throws AuthenticationException
      */
-    public boolean authenticate(final String login, final String password) throws AuthenticationException{
+    public static boolean authenticate(HttpServletRequest request, final String login, final String password) throws AuthenticationException{
         if (login != null && password != null){
             String hash = PasswordDigest.md5hash(password);
             UserDAO dao = new UserDAO();
@@ -63,7 +54,6 @@ public class AuthenticationLogic {
     public static boolean isLoggedIn(HttpServletRequest request){
         HttpSession session = request.getSession(true);
         return  (session.getAttribute(SESSION_VAR) != null);
-
     }
 
     /**
@@ -73,5 +63,11 @@ public class AuthenticationLogic {
     public static void logout(HttpServletRequest request){
         HttpSession session = request.getSession(true);
         session.removeAttribute(SESSION_VAR);
+    }
+
+    public static User user(HttpServletRequest request){
+        HttpSession session = request.getSession();
+        Object ob = session.getAttribute(SESSION_VAR);
+        return (ob != null && ob.getClass().equals(User.class)) ? (User) ob : null;
     }
 }

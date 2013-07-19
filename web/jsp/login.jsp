@@ -17,7 +17,7 @@
 
     <%@include file="../WEB-INF/jspf/header.jspf"%>
     <fmt:setLocale value="${locale}"/>
-    <fmt:setBundle basename="kz.enu.epam.azimkhan.auth.resource.message"/>
+
 
     <div class="content">
 

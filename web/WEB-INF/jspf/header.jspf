@@ -1,7 +1,10 @@
+<%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib prefix="m" uri="http://azimkhan.net/taglib" %>
 <fmt:setLocale value="${locale}"/>
 <fmt:setBundle basename="kz.enu.epam.azimkhan.auth.resource.message"/>
 <div id="header">
+    <c:set var="user" scope="page" value="${m:user(pageContext.request)}"/>
+
     <ul class="lang_switcher">
         <c:forEach items="${locales}" var="locale">
             <c:set var="code" value="${locale.value.toLanguageTag() }"/>
@@ -10,7 +13,7 @@
     </ul>
     <c:choose>
 
-        <c:when test="${m:authenticated(pageContext.request)}">
+        <c:when test="${not empty user}">
             <p><fmt:message key="user.welcome"> <fmt:param value="${ user.username }"/> </fmt:message> [<a href="app?c=logout"><fmt:message key="user.logout"/></a>]</p>
         </c:when>
 

@@ -64,15 +64,9 @@ public class ApplicationListener implements ServletContextListener,
     // -------------------------------------------------------
 
     public void attributeAdded(HttpSessionBindingEvent sbe) {
-      if(sbe.getName().equals(AuthenticationLogic.SESSION_VAR)){
-          context.setAttribute("authenticated", sbe.getValue() != null);
-          context.setAttribute("user", sbe.getValue());
-      }
     }
 
     public void attributeRemoved(HttpSessionBindingEvent sbe) {
-      context.setAttribute("authenticated", false);
-      context.setAttribute("user", null);
     }
 
     public void attributeReplaced(HttpSessionBindingEvent sbe) {
